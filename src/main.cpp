@@ -32,7 +32,7 @@ const char apn[]  = "gprs.swisscom.ch";
 const char user[] = "";
 const char pass[] = "";
 
-const int count = 10;
+const int count = 90; //90 = 12min
 
 long lastReconnectAttempt = 0;
 
@@ -109,8 +109,8 @@ void setup() {
     SerialMon.print("failed with state ");
     SerialMon.print(mqtt.state());
     delay(2000);
+    resetFunc();
   }
-
 
   for (size_t i = 0; i < count; i++)
   {
