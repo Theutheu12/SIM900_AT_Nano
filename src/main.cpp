@@ -32,7 +32,11 @@ const char apn[]  = "gprs.swisscom.ch";
 const char user[] = "";
 const char pass[] = "";
 
+const int count = 10;
+
 long lastReconnectAttempt = 0;
+
+int i=0;
 
 Adafruit_INA219 ina219;
 
@@ -47,6 +51,7 @@ void power_on();
 void power_off();
 void mqttCallback(char* topic, byte* payload, unsigned int len);
 boolean mqttConnect();
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void setup() {
   // put your setup code here, to run once:
@@ -106,7 +111,13 @@ void setup() {
     delay(2000);
   }
 
-  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+
+  for (size_t i = 0; i < count; i++)
+  {
+    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  }
+
+  resetFunc();
 
 }
 
