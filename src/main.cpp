@@ -60,7 +60,8 @@ void setup() {
   mySerial.begin(115200);
   ina219.begin();
 
-  //power_on();
+  power_on();
+  delay(1000);
 
   // Restart takes quite some time
   // To skip it, call init() instead of restart()
@@ -102,6 +103,15 @@ void setup() {
     dtostrf(busvoltage,3,1,voltagestring);
     sprintf(voltage_message, "%s", voltagestring);
     mqtt.publish("theutheu12/feeds/voltage",voltage_message);
+
+    float current = 0;
+    current = ina219.getCurrent_mA();
+    char currentstring[5];
+    char current_message[30];
+    dtostrf(current,3,1,currentstring);
+    sprintf(current_message, "%s", currentstring);
+    mqtt.publish("theutheu12/feeds/current",current_message);
+
     mqtt.disconnect();
   }
   else
@@ -111,6 +121,12 @@ void setup() {
     delay(2000);
     resetFunc();
   }
+
+
+  delay(2000);
+  power_off();
+  SerialMon.print("SIM900 power off");
+  delay(200);
 
   for (size_t i = 0; i < count; i++)
   {
