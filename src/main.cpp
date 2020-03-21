@@ -130,7 +130,8 @@ void setup() {
 
   for (size_t i = 0; i < count; i++)
   {
-    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+    //LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+    delay(1000);
   }
 
   resetFunc();
