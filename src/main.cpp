@@ -33,7 +33,7 @@ const char apn[]  = "gprs.swisscom.ch";
 const char user[] = "";
 const char pass[] = "";
 
-const int count = 90; //90 = 12min
+const int count = 15; //90 = 12min
 
 long lastReconnectAttempt = 0;
 
@@ -52,15 +52,22 @@ void power_on();
 void power_off();
 void mqttCallback(char* topic, byte* payload, unsigned int len);
 boolean mqttConnect();
-void software_Reboot(void);
 
-void setup() {
+void setup()
+{
   // put your setup code here, to run once:
   pinMode(onModulePin, OUTPUT);
   SerialMon.begin(115200);
   mySerial.begin(115200);
   ina219.begin();
+}
 
+/////////////////////////////////////////////////////////
+// loop
+////////////////////////////////////////////////////////
+
+void loop()
+{
   power_on();
   delay(1000);
 
@@ -77,17 +84,19 @@ void setup() {
   //modem.simUnlock("1234");
 
   SerialMon.print("Waiting for network...");
-  if (!modem.waitForNetwork()) {
+  if (!modem.waitForNetwork())
+  {
     SerialMon.println(" fail");
-    software_Reboot();
+    goto end;
   }
   SerialMon.println(" OK");
 
   SerialMon.print("Connecting to ");
   SerialMon.print(apn);
-  if (!modem.gprsConnect(apn, user, pass)) {
+  if (!modem.gprsConnect(apn, user, pass))
+  {
     SerialMon.println(" fail");
-    software_Reboot();
+    goto end;
   }
   SerialMon.println(" OK");
 
@@ -119,8 +128,7 @@ void setup() {
   {
     SerialMon.print("failed with state ");
     SerialMon.print(mqtt.state());
-    delay(2000);
-    software_Reboot();
+    goto end;
   }
 
 
@@ -131,20 +139,11 @@ void setup() {
 
   for (size_t i = 0; i < count; i++)
   {
-    //LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-    delay(1000);
+    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
   }
 
-  software_Reboot();
-}
-
-/////////////////////////////////////////////////////////
-// loop
-////////////////////////////////////////////////////////
-
-void loop() {
-
-
+end:
+  delay(1);
 }
 
 // Cette fonction permet d'envoyer des commandes AT au module GSM.
@@ -223,13 +222,3 @@ void power_off(){
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int len) {}
-
-void software_Reboot(void)
-{
-  SerialMon.print("Reseting");
-  wdt_enable(WDTO_15MS);
-
-  while(1)
-  {
-  }
-}
