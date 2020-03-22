@@ -7,6 +7,7 @@
 #include <PubSubClient.h>
 #include <SoftwareSerial.h>
 #include <LowPower.h>
+#include <avr/wdt.h>
 
 #define onModulePin 9
 
@@ -51,7 +52,7 @@ void power_on();
 void power_off();
 void mqttCallback(char* topic, byte* payload, unsigned int len);
 boolean mqttConnect();
-void(* resetFunc) (void) = 0; //declare reset function @ address 0
+void software_Reboot(void);
 
 void setup() {
   // put your setup code here, to run once:
@@ -78,7 +79,7 @@ void setup() {
   SerialMon.print("Waiting for network...");
   if (!modem.waitForNetwork()) {
     SerialMon.println(" fail");
-    while (true);
+    software_Reboot();
   }
   SerialMon.println(" OK");
 
@@ -86,7 +87,7 @@ void setup() {
   SerialMon.print(apn);
   if (!modem.gprsConnect(apn, user, pass)) {
     SerialMon.println(" fail");
-    while (true);
+    software_Reboot();
   }
   SerialMon.println(" OK");
 
@@ -119,7 +120,7 @@ void setup() {
     SerialMon.print("failed with state ");
     SerialMon.print(mqtt.state());
     delay(2000);
-    resetFunc();
+    software_Reboot();
   }
 
 
@@ -134,8 +135,7 @@ void setup() {
     delay(1000);
   }
 
-  resetFunc();
-
+  software_Reboot();
 }
 
 /////////////////////////////////////////////////////////
@@ -223,3 +223,13 @@ void power_off(){
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int len) {}
+
+void software_Reboot()
+{
+  wdt_enable(WDTO_15MS);
+
+  while(1)
+  {
+
+  }
+}
