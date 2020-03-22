@@ -224,12 +224,12 @@ void power_off(){
 
 void mqttCallback(char* topic, byte* payload, unsigned int len) {}
 
-void software_Reboot()
+void software_Reboot(void)
 {
+  SerialMon.print("Reseting");
   wdt_enable(WDTO_15MS);
 
   while(1)
   {
-
   }
 }
