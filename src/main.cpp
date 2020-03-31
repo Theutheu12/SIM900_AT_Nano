@@ -105,7 +105,7 @@ void loop()
     delay(100);
     SerialMon.println("[STEP15] SIM900 power off");
     power_off();
-    delay(2500);
+    delay(10000);
     goto end;
   }
   SerialMon.println(" OK");
