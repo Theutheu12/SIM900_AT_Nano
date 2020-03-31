@@ -221,7 +221,7 @@ void power_on(){
 
     // Cette commande vérifie si le module GSM est en marche.
     answer = sendATcommand("AT", "OK", 2000);
-    //SerialMon.println(answer, DEC);
+    SerialMon.println(answer, DEC);
     if (answer == 0)
     {
         // Mise en marche du module GSM
