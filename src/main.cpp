@@ -107,14 +107,14 @@ void loop()
   SerialMon.println(" OK");
 
   // MQTT Broker setup
-  SerialMon.print("[STEP6] MQTT Broker setup");
+  SerialMon.println("[STEP6] MQTT Broker setup");
   mqtt.setServer(broker, mqttPort);
-  SerialMon.print("[STEP7] MQTT Callback setup");
+  SerialMon.println("[STEP7] MQTT Callback setup");
   mqtt.setCallback(mqttCallback);
 
   if (mqtt.connect("SIM900", mqttUser, mqttPassword))
   {
-    SerialMon.print("[STEP8] Get Bus voltage");
+    SerialMon.println("[STEP8] Get Bus voltage");
     float busvoltage = 0;
     busvoltage = ina219.getBusVoltage_V();
     char voltagestring[5];
@@ -124,7 +124,7 @@ void loop()
     SerialMon.print("[STEP9] Bus Voltage:   ");
     SerialMon.print(busvoltage);
     SerialMon.println(" V");
-    SerialMon.print("[STEP10] MQTT publish");
+    SerialMon.println("[STEP10] MQTT publish");
     mqtt.publish("theutheu12/feeds/voltage",voltage_message);
 
     SerialMon.print("[STEP11] Get Current");
@@ -137,35 +137,35 @@ void loop()
     SerialMon.print("[STEP12] Current:   ");
     SerialMon.print(busvoltage);
     SerialMon.println(" mA");
-    SerialMon.print("[STEP13] MQTT publish");
+    SerialMon.println("[STEP13] MQTT publish");
     mqtt.publish("theutheu12/feeds/current",current_message);
 
     mqtt.disconnect();
   }
   else
   {
-    SerialMon.print("[STEP14] failed with state ");
+    SerialMon.println("[STEP14] failed with state ");
     SerialMon.print(mqtt.state());
     goto end;
   }
 
 
   delay(100);
-  SerialMon.print("[STEP15] SIM900 power off");
+  SerialMon.println("[STEP15] SIM900 power off");
   power_off();
   delay(100);
 
   for (size_t i = 0; i < count; i++)
   {
-    SerialMon.print("[STEP16] Sleep for 8sec");
+    SerialMon.println("[STEP16] Sleep for 8sec");
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-    SerialMon.print("[STEP17] Wake up");
+    SerialMon.println("[STEP17] Wake up");
   }
 
 end:
-  SerialMon.print("[END] Main program end");
+  SerialMon.println("[END] Main program end");
   delay(10);
-  SerialMon.print("[END] Restart");
+  SerialMon.println("[END] Restart");
 }
 
 // Cette fonction permet d'envoyer des commandes AT au module GSM.
