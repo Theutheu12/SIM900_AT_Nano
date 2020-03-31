@@ -33,7 +33,7 @@ const char apn[]  = "gprs.swisscom.ch";
 const char user[] = "";
 const char pass[] = "";
 
-const int count = 15; //90 = 12min
+const int count = 90; //90 = 12min
 
 long lastReconnectAttempt = 0;
 
@@ -52,9 +52,9 @@ void power_on();
 void power_off();
 void mqttCallback(char* topic, byte* payload, unsigned int len);
 boolean mqttConnect();
+void software_Reboot(void);
 
-void setup()
-{
+void setup() {
   // put your setup code here, to run once:
   pinMode(onModulePin, OUTPUT);
   SerialMon.begin(115200);
@@ -62,6 +62,7 @@ void setup()
   mySerial.begin(115200);
   SerialMon.println("[INIT] Serial SIM900 initialized");
   ina219.begin();
+<<<<<<< HEAD
   SerialMon.println("[INIT] INA219 initialized");
 }
 
@@ -74,6 +75,9 @@ void loop()
 
   SerialMon.println("[STEP0] Main program starting");
   SerialMon.println("[STEP1] SIM900 power on");
+=======
+
+>>>>>>> parent of 50ee318... Update main.cpp
   power_on();
   delay(100);
 
@@ -89,24 +93,32 @@ void loop()
   // Unlock your SIM card with a PIN
   //modem.simUnlock("1234");
 
+<<<<<<< HEAD
   SerialMon.print("[STEP4] Waiting for network...");
   if (!modem.waitForNetwork())
   {
+=======
+  SerialMon.print("Waiting for network...");
+  if (!modem.waitForNetwork()) {
+>>>>>>> parent of 50ee318... Update main.cpp
     SerialMon.println(" fail");
-    goto end;
+    software_Reboot();
   }
   SerialMon.println(" OK");
 
   SerialMon.print("[STEP5] Connecting to ");
   SerialMon.print(apn);
-  if (!modem.gprsConnect(apn, user, pass))
-  {
+  if (!modem.gprsConnect(apn, user, pass)) {
     SerialMon.println(" fail");
+<<<<<<< HEAD
     delay(100);
     SerialMon.println("[STEP15] SIM900 power off");
     power_off();
     delay(10000);
     goto end;
+=======
+    software_Reboot();
+>>>>>>> parent of 50ee318... Update main.cpp
   }
   SerialMon.println(" OK");
 
@@ -150,7 +162,8 @@ void loop()
   {
     SerialMon.println("[STEP14] failed with state ");
     SerialMon.print(mqtt.state());
-    goto end;
+    delay(2000);
+    software_Reboot();
   }
 
 
@@ -161,6 +174,7 @@ void loop()
 
   for (size_t i = 0; i < count; i++)
   {
+<<<<<<< HEAD
     SerialMon.println("[STEP16] Sleep for 8sec");
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
     SerialMon.println("[STEP17] Wake up");
@@ -170,6 +184,22 @@ end:
   SerialMon.println("[END] Main program end");
   delay(10);
   SerialMon.println("[END] Restart");
+=======
+    //LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+    delay(1000);
+  }
+
+  software_Reboot();
+}
+
+/////////////////////////////////////////////////////////
+// loop
+////////////////////////////////////////////////////////
+
+void loop() {
+
+
+>>>>>>> parent of 50ee318... Update main.cpp
 }
 
 // Cette fonction permet d'envoyer des commandes AT au module GSM.
@@ -248,3 +278,13 @@ void power_off(){
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int len) {}
+
+void software_Reboot(void)
+{
+  SerialMon.print("Reseting");
+  wdt_enable(WDTO_15MS);
+
+  while(1)
+  {
+  }
+}
