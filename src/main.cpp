@@ -58,8 +58,11 @@ void setup()
   // put your setup code here, to run once:
   pinMode(onModulePin, OUTPUT);
   SerialMon.begin(115200);
+  Serial.println("[INIT] Serial monitor initialized");
   mySerial.begin(115200);
+  SerialMon.println("[INIT] Serial SIM900 initialized");
   ina219.begin();
+  SerialMon.println("[INIT] INA219 initialized");
 }
 
 /////////////////////////////////////////////////////////
@@ -68,22 +71,25 @@ void setup()
 
 void loop()
 {
+
+  SerialMon.println("[STEP0] Main program starting");
+  SerialMon.println("[STEP1] SIM900 power on");
   power_on();
-  delay(1000);
+  delay(100);
 
   // Restart takes quite some time
   // To skip it, call init() instead of restart()
-  SerialMon.println("Initializing modem...");
+  SerialMon.println("[STEP2] Initializing modem...");
   modem.restart();
 
   String modemInfo = modem.getModemInfo();
-  SerialMon.print("Modem: ");
+  SerialMon.print("[STEP3] Modem: ");
   SerialMon.println(modemInfo);
 
   // Unlock your SIM card with a PIN
   //modem.simUnlock("1234");
 
-  SerialMon.print("Waiting for network...");
+  SerialMon.print("[STEP4] Waiting for network...");
   if (!modem.waitForNetwork())
   {
     SerialMon.println(" fail");
@@ -91,59 +97,79 @@ void loop()
   }
   SerialMon.println(" OK");
 
-  SerialMon.print("Connecting to ");
+  SerialMon.print("[STEP5] Connecting to ");
   SerialMon.print(apn);
   if (!modem.gprsConnect(apn, user, pass))
   {
     SerialMon.println(" fail");
+    delay(100);
+    SerialMon.println("[STEP15] SIM900 power off");
+    power_off();
+    delay(10000);
     goto end;
   }
   SerialMon.println(" OK");
 
   // MQTT Broker setup
+  SerialMon.println("[STEP6] MQTT Broker setup");
   mqtt.setServer(broker, mqttPort);
+  SerialMon.println("[STEP7] MQTT Callback setup");
   mqtt.setCallback(mqttCallback);
 
   if (mqtt.connect("SIM900", mqttUser, mqttPassword))
   {
+    SerialMon.println("[STEP8] Get Bus voltage");
     float busvoltage = 0;
     busvoltage = ina219.getBusVoltage_V();
     char voltagestring[5];
     char voltage_message[30];
     dtostrf(busvoltage,3,1,voltagestring);
     sprintf(voltage_message, "%s", voltagestring);
+    SerialMon.print("[STEP9] Bus Voltage:   ");
+    SerialMon.print(busvoltage);
+    SerialMon.println(" V");
+    SerialMon.println("[STEP10] MQTT publish");
     mqtt.publish("theutheu12/feeds/voltage",voltage_message);
 
+    SerialMon.print("[STEP11] Get Current");
     float current = 0;
     current = ina219.getCurrent_mA();
     char currentstring[5];
     char current_message[30];
     dtostrf(current,3,1,currentstring);
     sprintf(current_message, "%s", currentstring);
+    SerialMon.print("[STEP12] Current:   ");
+    SerialMon.print(busvoltage);
+    SerialMon.println(" mA");
+    SerialMon.println("[STEP13] MQTT publish");
     mqtt.publish("theutheu12/feeds/current",current_message);
 
     mqtt.disconnect();
   }
   else
   {
-    SerialMon.print("failed with state ");
+    SerialMon.println("[STEP14] failed with state ");
     SerialMon.print(mqtt.state());
     goto end;
   }
 
 
-  delay(2000);
+  delay(100);
+  SerialMon.println("[STEP15] SIM900 power off");
   power_off();
-  SerialMon.print("SIM900 power off");
-  delay(200);
+  delay(100);
 
   for (size_t i = 0; i < count; i++)
   {
+    SerialMon.println("[STEP16] Sleep for 8sec");
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+    SerialMon.println("[STEP17] Wake up");
   }
 
 end:
-  delay(1);
+  SerialMon.println("[END] Main program end");
+  delay(10);
+  SerialMon.println("[END] Restart");
 }
 
 // Cette fonction permet d'envoyer des commandes AT au module GSM.
