@@ -56,10 +56,12 @@ boolean mqttConnect();
 void setup()
 {
   // put your setup code here, to run once:
+  //wdt_disable();
   pinMode(onModulePin, OUTPUT);
   SerialMon.begin(115200);
   mySerial.begin(115200);
   ina219.begin();
+  //wdt_enable(WDTO_8S);
 }
 
 /////////////////////////////////////////////////////////
@@ -68,13 +70,40 @@ void setup()
 
 void loop()
 {
+
+  float busvoltage = 0;
+  busvoltage = ina219.getBusVoltage_V();
+  char voltagestring[5];
+  char voltage_message[30];
+  dtostrf(busvoltage,3,1,voltagestring);
+  sprintf(voltage_message, "%s", voltagestring);
+
+  float current = 0;
+  current = ina219.getCurrent_mA();
+  char currentstring[5];
+  char current_message[30];
+  dtostrf(current,3,1,currentstring);
+  sprintf(current_message, "%s", currentstring);
+
+  SerialMon.print("Bus Voltage:   "); Serial.print(busvoltage); Serial.println(" V");
+  SerialMon.print("Current:       "); Serial.print(current); Serial.println(" mA");
+  SerialMon.println("");
+
   power_on();
   delay(1000);
 
   // Restart takes quite some time
   // To skip it, call init() instead of restart()
   SerialMon.println("Initializing modem...");
-  modem.restart();
+
+  //if (!modem.restart()) {
+    if (!modem.init()) {
+      SerialMon.println("Failed to restart modem, delaying 10s and retrying");
+      delay(10000L);
+      // restart autobaud in case GSM just rebooted
+      // TinyGsmAutoBaud(SerialAT, GSM_AUTOBAUD_MIN, GSM_AUTOBAUD_MAX);
+      return;
+    }
 
   String modemInfo = modem.getModemInfo();
   SerialMon.print("Modem: ");
@@ -106,22 +135,8 @@ void loop()
 
   if (mqtt.connect("SIM900", mqttUser, mqttPassword))
   {
-    float busvoltage = 0;
-    busvoltage = ina219.getBusVoltage_V();
-    char voltagestring[5];
-    char voltage_message[30];
-    dtostrf(busvoltage,3,1,voltagestring);
-    sprintf(voltage_message, "%s", voltagestring);
     mqtt.publish("theutheu12/feeds/voltage",voltage_message);
-
-    float current = 0;
-    current = ina219.getCurrent_mA();
-    char currentstring[5];
-    char current_message[30];
-    dtostrf(current,3,1,currentstring);
-    sprintf(current_message, "%s", currentstring);
     mqtt.publish("theutheu12/feeds/current",current_message);
-
     mqtt.disconnect();
   }
   else
@@ -203,10 +218,17 @@ void power_on(){
         delay(3000);
         digitalWrite(onModulePin,LOW);
 
-        // Envoie d'une commande AT toutes les deux secondes et attente d'une réponse.
+        unsigned long startedWaiting = millis();
+        while(answer == 0 && millis() - startedWaiting <= 10000)
+        {
+          answer = sendATcommand("AT", "OK", 2000);
+          SerialMon.println("AT");
+        }
+
+        /*// Envoie d'une commande AT toutes les deux secondes et attente d'une réponse.
         while(answer == 0){
             answer = sendATcommand("AT", "OK", 2000);
-        }
+        }*/
     }
 
 }
